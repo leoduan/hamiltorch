@@ -827,7 +827,7 @@ def hamiltonian(params, momentum, log_prob_func, jitter=0.01, normalizing_const=
 
 
 
-def sample(log_prob_func, params_init, num_samples=10, num_steps_per_sample=10, step_size=0.1, burn=0, jitter=None, inv_mass=None, normalizing_const=1., softabs_const=None, explicit_binding_const=100, fixed_point_threshold=1e-5, fixed_point_max_iterations=1000, jitter_max_tries=10, sampler=Sampler.HMC, integrator=Integrator.IMPLICIT, metric=Metric.HESSIAN, debug=False, desired_accept_rate=0.8, store_on_GPU = True):
+def sample(log_prob_func, params_init, num_samples=10, num_steps_per_sample=10, step_size=0.1, burn=0, jitter=None, inv_mass=None, normalizing_const=1., softabs_const=None, explicit_binding_const=100, fixed_point_threshold=1e-5, fixed_point_max_iterations=1000, jitter_max_tries=10, sampler=Sampler.HMC, integrator=Integrator.IMPLICIT, metric=Metric.HESSIAN, debug=False, desired_accept_rate=0.8, store_on_GPU = True, verbose = True):
     """ This is the main sampling function of hamiltorch. Most samplers are built on top of this class. This function receives a function handle log_prob_func,
      which the sampler will use to evaluate the log probability of each sample. A log_prob_func must take a 1-d vector of length equal to the number of parameters that are being
      sampled.
@@ -933,9 +933,12 @@ def sample(log_prob_func, params_init, num_samples=10, num_steps_per_sample=10, 
 
     num_rejected = 0
     # if sampler == Sampler.HMC:
-    util.progress_bar_init('Sampling ({}; {})'.format(sampler, integrator), num_samples, 'Samples')
+    
+    if verbose:
+        util.progress_bar_init('Sampling ({}; {})'.format(sampler, integrator), num_samples, 'Samples')
     for n in range(num_samples):
-        util.progress_bar_update(n)
+        if verbose:
+            util.progress_bar_update(n)
         try:
             momentum = gibbs(params, sampler=sampler, log_prob_func=log_prob_func, jitter=jitter, normalizing_const=normalizing_const, softabs_const=softabs_const, metric=metric, mass=mass)
 
@@ -1000,7 +1003,8 @@ def sample(log_prob_func, params_init, num_samples=10, num_steps_per_sample=10, 
                     step_size, eps_bar, H_t = adaptation(rho, n, step_size_init, H_t, eps_bar, desired_accept_rate=desired_accept_rate)
                 if n  == burn:
                     step_size = eps_bar
-                    print('Final Adapted Step Size: ',step_size)
+                    if verbose:
+                        print('Final Adapted Step Size: ',step_size)
 
             # if not store_on_GPU: # i.e. delete stuff left on GPU
             #     # This adds approximately 50% to runtime when using colab 'Tesla P100-PCIE-16GB'
@@ -1046,7 +1050,8 @@ def sample(log_prob_func, params_init, num_samples=10, num_steps_per_sample=10, 
 
 
     # import pdb; pdb.set_trace()
-    util.progress_bar_end('Acceptance Rate {:.2f}'.format(1 - num_rejected/num_samples)) #need to adapt for burn
+    if verbose:
+        util.progress_bar_end('Acceptance Rate {:.2f}'.format(1 - num_rejected/num_samples)) #need to adapt for burn
     if NUTS and debug == 2:
         return list(map(lambda t: t.detach(), ret_params)), step_size
     elif debug == 2:

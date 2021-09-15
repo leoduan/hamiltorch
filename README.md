@@ -1,3 +1,12 @@
+Forked version of the Hamiltorch package, with option to turn off the message.
+
+
+Use verbose = False to turn off message printing.
+
+Use debug = 2 to return the update parameter & the acceptance rate.
+
+
+
 # hamiltorch [![Build Status](https://travis-ci.com/AdamCobb/hamiltorch.svg?token=qJKqovbtw9EzCw99Nvg8&branch=master)](https://travis-ci.com/AdamCobb/hamiltorch)
 
 
